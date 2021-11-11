@@ -1,7 +1,7 @@
 """ASE integrated modules to compute physical quantites of molecules (volume, elongation, etc.)"""
 
 # Add imports here
-from .moldesc import *
+from .moldesc import mol_vdw_volume, mol_elongation
 
 # Handle versioneer
 from ._version import get_versions
