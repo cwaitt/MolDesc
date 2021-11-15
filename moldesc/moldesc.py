@@ -74,25 +74,50 @@ def mol_elongation(mol):
     ypos = [i[1] for i in positions]
     zpos = [i[2] for i in positions]
 
-    xbox = max(xpos) - min(xpos)     # get the dimensions of the box to enclose the molecule
-    ybox = max(ypos) - min(ypos)
-    zbox = max(zpos) - min(zpos)
+    max_x_ind = np.argmax(xpos)
+    max_y_ind = np.argmax(ypos)
+    max_z_ind = np.argmax(zpos)
 
-    atoms.set_cell([xbox,ybox,zbox])
-    atoms.center()
-    view(atoms)
+    min_x_ind = np.argmin(xpos)
+    min_y_ind = np.argmin(ypos)
+    min_z_ind = np.argmin(zpos)
+
+    max_x_sym = atoms.get_chemical_symbols()[max_x_ind]
+    max_y_sym = atoms.get_chemical_symbols()[max_y_ind]
+    max_z_sym = atoms.get_chemical_symbols()[max_z_ind]
+
+    min_x_sym = atoms.get_chemical_symbols()[min_x_ind]
+    min_y_sym = atoms.get_chemical_symbols()[min_y_ind]
+    min_z_sym = atoms.get_chemical_symbols()[min_z_ind]
+
+    max_x_radii = [i[1] for i in vdw_cutoff_list if max_x_sym == i[0]][0]
+    max_y_radii = [i[1] for i in vdw_cutoff_list if max_y_sym == i[0]][0]
+    max_z_radii = [i[1] for i in vdw_cutoff_list if max_z_sym == i[0]][0]
+
+    min_x_radii = [i[1] for i in vdw_cutoff_list if min_x_sym == i[0]][0]
+    min_y_radii = [i[1] for i in vdw_cutoff_list if min_y_sym == i[0]][0]
+    min_z_radii = [i[1] for i in vdw_cutoff_list if min_z_sym == i[0]][0]
+
+    c_xbox = (max(xpos)+max_x_radii) - (min(xpos)-min_x_radii) # circumscribed box
+    c_ybox = (max(ypos)+max_y_radii) - (min(ypos)-min_y_radii)
+    c_zbox = (max(zpos)+max_z_radii) - (min(zpos)-min_z_radii)
+
+    i_xbox = (max(xpos)-max_x_radii) - (min(xpos)+min_x_radii) # inscribed box
+    i_ybox = (max(ypos)-max_y_radii) - (min(ypos)+min_y_radii)
+    i_zbox = (max(zpos)-max_z_radii) - (min(zpos)+min_z_radii)
+
+    c_box = [c_xbox,c_ybox,c_zbox]
+    i_box = [i_xbox,i_ybox,i_zbox]
+
+    #atoms.set_cell([xbox,ybox,zbox])
+    #atoms.center()
+    #view(atoms)
 
     ### Elongation
-    if xbox > ybox and xbox > zbox:
-        elong_a = ybox/xbox
-        elong_b = zbox/xbox
+    box_sort = np.sort(c_box)
 
-    elif ybox > xbox and ybox > zbox:
-        elong_a = xbox/ybox
-        elong_b = zbox/ybox
+    thickness = box_sort[0]/box_sort[2]
 
-    elif zbox > xbox and zbox > ybox:
-        elong_a = xbox/zbox
-        elong_b = ybox/zbox
-        
-    return elong_a, elong_b
+    asym = (box_sort[0]/box_sort[1]) - (box_sort[1]/box_sort[2])
+
+    return thickness, asym, c_box, i_box
